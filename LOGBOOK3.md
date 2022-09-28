@@ -19,10 +19,10 @@
 
 ### Exploit
 
-- item1
-- item2
-- item3
-- item4
+- A vulnerabilidade é explorada a partir de ficheiros RTF/Word maliciosos primariamente enviados anexados a mensagens de email.
+- O ficheiro RTF contém três ficheiros, sendo um deles (do tipo OLE) o responsável por desencadear um buffer overflow que permite executar o código malicioso.
+- O ataque usa também técnicas para ocultar a sua presença. Uma das razões pela qual o atacante incorpora este ficheiro num objeto do tipo OLE é para que o seu código fonte esteja escrito com a sua representação ASCII, em vez do próprio código hex malicioso, evitando que seja facilmente detetado.
+- Outras técnicas são também usadas para esconder o ataque.
 
 ### Ataques
 
