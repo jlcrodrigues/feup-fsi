@@ -1,9 +1,8 @@
-
 Breve descrição do grupo
 
 * Turno: [LM]XX
-* Grupo: YY
+* Grupo: 08
 * Alunos:
-    - Aluno1 upZZZZZ 
-    - Aluno2 upZZZZZ
+    - Sara Moreira Reis up202005388
+    - José Luís Cunha Rodrigues up202008462
     - Aluno3 upZZZZZ
