@@ -69,4 +69,19 @@ O resultado  é inesperado na medida em que, apesar do processo filho herdar as 
 ## Tarefa 2.6
 
 
+# CTF Semana 4
 
+## Desafio 1
+
+// TODO
+
+## Desafio 2 
+
+Depois de confirmar que o CVE escolhido estava correto, procedemos à procura de exploits com o mesmo. Utilizando a plataforma Exploit Database foi possível encontrar um [script](https://www.exploit-db.com/exploits/50299) python que iria permitir explorar a vulnerabilidade.
+
+```bash
+$ python3 script.py http://ctf-fsi.fe.up.pt:5001/my-account/ 1
+# O argumento 1 foi utilizado porque este é o id geralmente atribuído ao administrador.
+```
+
+A execução do programa gerou um link que nos garantiu acesso admin ao site. Entrando na página da adminstração, encontramos a flag numa mensagem intitulada *Message to our employees*.
