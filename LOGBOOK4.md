@@ -50,7 +50,7 @@ Ao alterar o argumento `envp` para `environ`, observa-se que o programa imprime 
 Correr o comando *system("/usr/bin/env")* dá o mesmo resultado que correr *execve("/usr/bin/env", argv, environ)*, como pode ser verificado abaixo:
 #
 
-![title](images/2_4.png)
+![title](screenshots/2_4.png)
 *Output de system("/usr/bin/env")*
 
 Isto acontece porque *system()* chama a função *execl()*, que por sua vez chama *execve()*, passando por defeito um *array* infinito para as variáveis de ambiente.
@@ -61,7 +61,7 @@ Isto acontece porque *system()* chama a função *execl()*, que por sua vez cham
 No Passo 3 definimos novas variáveis de ambiente, nomeadamente TEST e LD_LIBRARY_PATH. Contudo, estas novas variáveis não aparecem na listagem quando corremos o programa Set_UID compilado no Passo 2, como podemos ver no *output* abaixo:
 
 #
-![title](images/2_5.png)
+![title](screenshots/2_5.png)
 *Output do programa Set_UID  compilado no Passo 2*
 
 O resultado  é inesperado na medida em que, apesar do processo filho herdar as variáveis de ambiente já existentes no processo pai, este não herda as novas variáveis de ambiente adicionadas anteriormente.
@@ -69,11 +69,19 @@ O resultado  é inesperado na medida em que, apesar do processo filho herdar as 
 ## Tarefa 2.6
 
 
+
+<br/>
+
 # CTF Semana 4
+
 
 ## Desafio 1
 
-// TODO
+Tal como indicava o enunciado os primeiros passos consistiram em descobrir algumas informações sobre a plataforma, nomeadamente a versão de *WordPress* do website e alguns dos *plugins* utilizados.
+
+Esta primeira foi descoberta com recurso ao *inspector* pesquisando pela *keyword* "Wordpress" chegando ao valor 5.8.1. De seguida, na *tab* "Additional Information" presente na página de um dos produtos à venda, descobrimos os plugins e as suas versões.
+
+Com esta informação pesquisamos quais os CVEs existentes para aquela versão de Wordpress e associados aos plugins encontrados. Por fim, chegamos ao CVE 2021-34646 que está diretamente relacionado com um dos plugins encontrados (*WooCommerce Booster*).
 
 ## Desafio 2 
 
