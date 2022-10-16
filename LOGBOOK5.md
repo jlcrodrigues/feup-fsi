@@ -1,6 +1,6 @@
 # Trabalho realizado na Semana #4
 
-## Tarefa 3
+## Tarefa 1
 
 No programa `call_shellcode.d`, é criada uma função func e é colocado no seu endereço de memória um código binário que abre uma shell. 
 
@@ -63,3 +63,17 @@ Que nos permitiram ter sucesso no ataque:
 
 ![title](screenshots/5_1.png)
 
+# CTF Semana 5
+
+## Desafio 1
+
+Ao observar o ficherio `main.c` identificamos a seguinte vulnerabilidade: O buffer alocado para guardar o input tem 20 bytes, no entanto, a função `scanf` está a aceitar 28 bytes. A variável `meme_file` está localizada a seguir ao `buffer`. Quer isto dizer que o que for escrito nos extra 8 bytes do input será colocado em `meme_file`. Isto é um problema porque esta variável dita que ficheiro irá ser aberto. Podemos assim alterá-la para abrir o ficheiro `flag.txt`.
+
+```python
+s = b""
+for i in range(20):
+	s += b"a"
+s += b"flag.txt\0"
+```
+
+Ao executar o programa com input `s`, este abre o ficheiro `flag.txt` e imprime os seus conteúdos, revelando a flag.
