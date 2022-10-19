@@ -60,3 +60,31 @@ Aplicando o mesmo raciocínio conseguimos efetuar o mesmo ataque para uma stack 
 
 ![title](screenshots/5_1_2.png)
 
+# CTF Semana 5
+
+## Desafio 1
+
+Ao observar o ficherio `main.c` identificamos a seguinte vulnerabilidade: O buffer alocado para guardar o input tem 20 bytes, no entanto, a função `scanf` está a aceitar 28 bytes. A variável `meme_file` está localizada a seguir ao `buffer`. Quer isto dizer que o que for escrito nos extra 8 bytes do input será colocado em `meme_file`. Isto é um problema porque esta variável dita que ficheiro irá ser aberto. Podemos assim alterá-la para abrir o ficheiro `flag.txt`.
+
+```python
+s = b""
+for i in range(20):
+	s += b"a"
+s += b"flag.txt\0"
+```
+
+Ao executar o programa com input `s`, este abre o ficheiro `flag.txt` e imprime os seus conteúdos, revelando a flag.
+
+## Desafio 2
+
+Neste novo programa foi introduzido um novo campo de verificação, `val`. Está localizado em memória entre `meme_file` e `buffer`. Quer isto dizer que para reescrever o `meme_file` com a mesma técnica utilizada anteriormente será necessário reescrever também em `val`. Não será problema uma vez que o `scanf` aceita agora 32 bytes e val tem apenas 4 de tamanho.
+
+```python
+s = b""
+for i in range(20):
+	s += b"a"
+s += bytes.fromhex('2322fcfe')
+s += b"flag.txt\0"
+```
+
+Desta vez colocamos também na string os 4 bytes extra necessários para o programa proceder à abertura do ficheiro. Mais uma vez, o programa abre o ficheiro `flag.txt` e revela a flag.
