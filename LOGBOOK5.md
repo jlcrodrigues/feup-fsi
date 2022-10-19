@@ -1,6 +1,6 @@
 # Trabalho realizado na Semana #4
 
-## Tarefa 3
+## Tarefa 1
 
 No programa `call_shellcode.d`, é criada uma função func e é colocado no seu endereço de memória um código binário que abre uma shell. 
 
@@ -12,6 +12,11 @@ func(); // Invoke the shellcode from the stack
 ```
 
 Utilizando o ficheiro `Make` fornecido, são criados dois binários: `a32.out` e `a64.out`. Executando qualquer um destes podemos observar que é aberta uma shell. Isto acontece porque o programa chama a função `func`. No seu endereço de memória está o programa binário, sendo este o código executado.
+
+## Tarefa 2
+
+Nesta tarefa o objetivo é transformar o programa, cedendo-lhe permissões root e transformando-o num programa Set-UID.
+
 
 ## Tarefa 3
 
@@ -28,38 +33,30 @@ $2 = (char (*)[100]) 0xffffcafc
 
 Sabendo que o início da posição do buffer é o valor de $2 e a posição do valor de retorno é dado pelo ebp $1, podemos calcular o offset subtraindo os endereços $1- $2, obtendo assim o valor 108.
 
-No entanto, como queremos que a função de retorno aponte para lá do fim da stack somamos também 4 bits ao offset.
+(Explicação dos 4 bits)
 
-Dadas estas informações podemos preencher a seguinte secção do ficheiro exploit.py
+No entanto, como queremos que a função de retorno aponte para baixo do ebp, tentamos somar vários valores ao return. Sabendo isto, colocámos o start (início do shellcode) no fim do ficheiro calculando : `start = 517 - len(shellcode)`. Assim, como entre a posição do return e o início do shellcode, o ficheiro terá instruções 0x90, sabemos que eventualmente será executado o código deste último.
 
-```py
-# Decide the return address value and put it somewhere in the payload
+Após algumas tentivas, descobrimos que somando 200 ao valor inicial do ebp, o nosso ataque executa com sucesso:
 
-ret    = 0xffffcb68         
-offset = 108 + 4               
+![title](screenshots/5_1.png)
 
-```
-
-Para calcular o valor o início do shellcode fomos experimentando diferentes valores tendo em conta que
-- este valor mais o tamanho do script não poderá exceder o tamanho do ficheiro
-- o endereço de retorno irá apontar para perto daqueles imediatamente após o fim da stack
-
-Por fim chegámos aos seguintes valores:
+Assim o nosso ficheiro *exploit.py* fica com os seguintes valores:
 
 ```py
 # Decide the return address value and put it somewhere in the payload
 
-start = 140             
+start = 517 - len(shellcode)            
 content[start:start + len(shellcode)] = shellcode
 
 # Decide the return address value 
 # and put it somewhere in the payload
-ret    = 0xffffcb68         # 
+ret    = 0xffffcb68         # hex (ebp +200)
 offset = 108 + 4                      
 
 ```
 
-Que nos permitiram ter sucesso no ataque:
+Aplicando o mesmo raciocínio conseguimos efetuar o mesmo ataque para uma stack de tamanho diferente.
 
-![title](screenshots/5_1.png)
+![title](screenshots/5_1_2.png)
 
