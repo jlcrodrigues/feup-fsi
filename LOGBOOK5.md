@@ -31,11 +31,10 @@ $2 = (char (*)[100]) 0xffffcafc
 
 ```
 
-Sabendo que o início da posição do buffer é o valor de $2 e a posição do valor de retorno é dado pelo ebp $1, podemos calcular o offset subtraindo os endereços $1- $2, obtendo assim o valor 108.
+Sabendo que o início da posição do buffer é o valor de $2 e a posição do valor de retorno é dado pelo ebp $1, podemos calcular o offset subtraindo os endereços $1- $2, obtendo assim o valor 108. Como o shellcode é de 32 bits, adicionámos também 4 bytes ao offset.
 
-(Explicação dos 4 bits)
 
-No entanto, como queremos que a função de retorno aponte para baixo do ebp, tentamos somar vários valores ao return. Sabendo isto, colocámos o start (início do shellcode) no fim do ficheiro calculando : `start = 517 - len(shellcode)`. Assim, como entre a posição do return e o início do shellcode, o ficheiro terá instruções 0x90, sabemos que eventualmente será executado o código deste último.
+Pretendedo que a função de retorno aponte para baixo do ebp, tentamos encontrar um novo endereço de retorno somando vários valores ao mesmo. Sabendo isto, colocámos o start (início do shellcode) no fim do ficheiro calculando : `start = 517 - len(shellcode)`. Assim, como entre a posição do return e o início do shellcode, o ficheiro terá instruções 0x90, sabemos que eventualmente será executado o código deste último.
 
 Após algumas tentivas, descobrimos que somando 200 ao valor inicial do ebp, o nosso ataque executa com sucesso:
 
