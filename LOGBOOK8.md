@@ -92,3 +92,71 @@ all. Therefore the navbar tag starts before the php tag but it end within the ph
 ```
 
 ### Task 2.3
+As was expected, we were unable to run two queries. This happens because there's already a countermeasure against SQL Injection in the *unsafe_home.php* file. The function *query* of *mysqli* only allows for one query at a time, explaining why it raises an error when we inject two statements.
+
+```php
+$conn = getDB();
+      // Sql query to authenticate the user
+      $sql = "SELECT id, name, eid, salary, birth, ssn, phoneNumber, address, email,nickname,Password
+      FROM credential
+      WHERE name= '$input_uname' and Password='$hashed_pwd'";
+      if (!$result = $conn->query($sql)) {
+        echo "</div>";
+        echo "</nav>";
+        echo "<div class='container text-center'>";
+        die('There was an error running the query [' . $conn->error . ']\n');
+        echo "</div>";
+      }
+```
+
+### Task 3.1
+We can alter Alice's salary injecting the following line in the first field (for example)
+
+```SQL
+' , Salary='20000000
+```
+The result is the following:
+
+<p align="center">
+    <img src="screenshots/update_salary.png">
+</p>
+
+
+### Task 3.2
+
+To alter Boby's salary we can inject the following line in one of the fields from Alice's 'edit profile' page.
+
+```SQL
+', Salary='2' WHERE Name='Boby';-- 
+```
+
+When we access Boby's profile, the result is the following:
+
+<p align="center">
+    <img src="screenshots/update_bobby_salary.png">
+</p>
+
+### Task 3.3
+
+In this task we'll try to change Boby's password to '111'. To do that we need to find out what's the value when we encode it using the *sha1( )* function, which is *6216f8a75fd5bb3d5f22b6f9958cdede3fc086c2*
+
+This hashed value is what will be saved in the database.
+
+In Alice's 'edit profile' page, we inject the following line in one of the fields. This will alter Bobby's password to *111*
+
+```SQL
+', Password='6216f8a75fd5bb3d5f22b6f9958cdede3fc086c2' WHERE Name='Boby';-- 
+```
+
+Then we try to login to Boby's account using the new password.
+
+<p align="center">
+    <img src="screenshots/login_boby.png">
+</p>
+
+And just like we wanted to, we have gained access to Boby's account using a password defined by us.
+
+<p align="center">
+    <img src="screenshots/boby_profile.png">
+</p>
+
