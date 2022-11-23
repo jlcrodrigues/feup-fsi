@@ -119,9 +119,9 @@ Then, when Alice loaded his profile, our exploit sent a request and successfully
 2. If we try to write code into the About me Visual editor, our text will be enconded to HTML. For example, '<' will become `<p>&lt;</p>`. Because of that, we cannot load js code in a way it could be executed.
 
 
-### Week 10 CTF
+## Week 10 CTF
 
-## First Challenge
+### First Challenge
 
 If we provide an arbitrary string for a justification, the admin will not give access to the flag.
 We noticed that the text input was vulnerable to XSS by passing `<script>alert('hey')</script>`. This prompted an alert message.
@@ -135,3 +135,18 @@ Thus, we decided to click the button ourselves using XSS:
 
 When this "justification" was loaded into the admin page it would click the give flag button which in turn gave us the flag.
 
+### Second Challenge
+
+The second challenge presented us with a website. There was a section that gave us the ping to a host.
+It looked like this was using the Linux's `ping` command. 
+Because of that, we tried passing an additional command, like this:
+
+```
+; echo "hey"
+```
+
+Because that worked and hey was prompted, then it was easy to retrieve the flag:
+
+``` 
+; cat /flags/flag.txt
+```
