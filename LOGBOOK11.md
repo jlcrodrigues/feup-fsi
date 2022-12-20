@@ -140,3 +140,64 @@ However we could not load the page since the certificate was not valid for that 
 To be able to load the page, we had to recreate our certificate so that we include this url in our alias. Having done that and after restarting the server, we were able to access to ` www.facebook.com `:
 
 ![title](screenshots/log11_9.jpeg)
+
+## Week 12 CTF
+
+### First Challenge
+
+For this challenge, we were given an RSA encrypted flag. 
+The idea of the challenge was to break the encryption and get the flag.
+
+For the RSA algorithm to work it needs the following values:
+ - Two prime numbers `p` and `q`.
+ - An exponent `e`.
+ - A value `d`, which is the modular inverse of e modulo `(p-1)(q-1)`.
+
+We knew that `p` was a prime number next to `2**512`. 
+So, to get `p` we used *Wolfram Alpha*:
+
+![wolfram](screenshots/wolfram.png)
+
+In turn, we also knew that `q` was a prime number next to `2**513`.
+Following the same method as for `p`, we were able to get the value.
+
+As the exponent `e` was given, all was left to do was to get `d`:
+```
+d = modular_inverse(e, (p-1)*(q-1))
+```
+
+After all this values were obtained, we used the given `template.py` file to decipher the flag.
+
+### Second Challenge
+
+The goal of this challenge was also to break a RSA key.
+This time, we were given two messages created with different exponents but the same p.
+After a bit of research, we came across [this](https://crypto.stackexchange.com/questions/1614/rsa-cracking-the-same-message-is-sent-to-two-different-people-problem) thread that explained the math needed to solve the problem.
+
+First, we made sure the gcd of both exponents was 1, in order for this to work.
+Then, we calculated `a` and `b` such that `e1*a + e2*b = 1`. This was done with the extended euclidean algorithm. 
+Because b was negative, we used the modular inverse of the second message for the calculations (let that value be `i`).
+
+With all the above values calculated, we could arrive at the original message with the following: 
+
+```
+message = (c**a1 * i**(-b)) mod n
+```
+
+That was done with the following python snippet:
+
+```py
+n = # ommited
+
+a = 32769
+b = -32768
+
+c1 = # first message 
+c2 = # second message 
+
+c1=int.from_bytes(unhexlify(c1), "big")
+c2=int.from_bytes(unhexlify(c2), "big")
+
+flag = (c1**a * modular_inverse(c2, n)**(-b)) % n
+```
+
